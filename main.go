@@ -154,25 +154,76 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 
 	//db := dbConn()
 
+	var nameLa string
+	var nameEn string
+	var Address string
+	var TelephoneNo string
+	var WhatsAppNo string
+	var IDCard string
+	var ExpiryDate string
+	var IssuedAt string
+	var Age string
+	var DateOfBirth string
+	var Height string
+	var Weight string
+	var Nationality string
+	var Occupation string
+	var Position string
+	var JobDescription string
+	var WorkPlace string
+	var OfficePhoneNo string
+	var OtherOccupation string
+
 	if r.Method == "POST" {
 
 		var req model.RegisterRequest
 
 		err := json.NewDecoder(r.Body).Decode(&req)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		nameLa := req.NameLa
-		nameEn := req.NameEn
-		Address := req.Address
-		TelephoneNo := req.TelephoneNo
+		nameLa = req.NameLa
+		nameEn = req.NameEn
+		Address = req.Address
+		TelephoneNo = req.TelephoneNo
+		WhatsAppNo = req.WhatsAppNo
+		IDCard = req.IDCard
+		ExpiryDate = req.ExpiryDate
+		IssuedAt = req.IssuedAt
+		Age = req.Age
+		DateOfBirth = req.DateOfBirth
+		Height = req.Height
+		Weight = req.Weight
+		Nationality = req.Nationality
+		Occupation = req.Occupation
+		Position = req.Position
+		JobDescription = req.JobDescription
+		WorkPlace = req.WorkPlace
+		OfficePhoneNo = req.OfficePhoneNo
+		OtherOccupation = req.OtherOccupation
 
 		log.Println("INFO: NameEN: " + nameEn)
 		log.Println("INFO: NameLA: " + nameLa)
 		log.Println("INFO: Address: " + Address)
 		log.Println("INFO: TelephoneNo: " + TelephoneNo)
+		log.Println("INFO: WhatsAppNo: " + WhatsAppNo)
+		log.Println("INFO: IDCard: " + IDCard)
+		log.Println("INFO: ExpiryDate: " + ExpiryDate)
+		log.Println("INFO: IssuedAt: " + IssuedAt)
+		log.Println("INFO: Age: " + Age)
+		log.Println("INFO: DateOfBirth: " + DateOfBirth)
+		log.Println("INFO: Height: " + Height)
+		log.Println("INFO: Weight: " + Weight)
+		log.Println("INFO: Nationality: " + Nationality)
+		log.Println("INFO: Occupation: " + Occupation)
+		log.Println("INFO: Position: " + Position)
+		log.Println("INFO: JobDescription: " + JobDescription)
+		log.Println("INFO: WorkPlace: " + WorkPlace)
+		log.Println("INFO: OfficePhoneNo: " + OfficePhoneNo)
+		log.Println("INFO: OtherOccupation: " + OtherOccupation)
 
 		for i := 0; i < len(req.AnswerInfo); i++ {
 			questionID := req.AnswerInfo[i].QuestionID
@@ -184,6 +235,7 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 				subQuestion := choiceSelected[j].SubQuestion
 				log.Println("INFO: ChoiceID: " + choiceID)
 				log.Println("INFO: ChoiceTitle: " + choiceTitle)
+				InsertInfoAnswer(questionID, choiceID, "XXX-GO")
 				for k := 0; k < len(subQuestion); k++ {
 					subQuestionID := subQuestion[k].SubQuestionID
 					subQuestionAnsw := subQuestion[k].SubQuestionAnwser
@@ -207,6 +259,50 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	//defer db.Close()
 	//http.Redirect(w, r, "/", 301)
+}
+
+func InsertInfoAnswer(QuestionID string, ChoiceID string, UserID string) bool {
+
+	var result bool = false
+
+	db := database.ConnectDb()
+
+	res, err := db.Prepare("insert into tb_answer(question_id, choice_id, user_id) values (?,?,?)")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	res.Exec(QuestionID, ChoiceID, UserID)
+
+	if res != nil {
+		result = true
+	}
+
+	return result
+
+}
+
+func InsertInfoAnswerDetail(AnswerID int, ChoiceID string, QuestionID string, SubQuestionID string, Text string) bool {
+
+	var result bool = false
+
+	db := database.ConnectDb()
+
+	res, err := db.Prepare("insert into tb_sub_answer(answer_id, choice_id, question_id, sub_question_id, text) values (?,?,?,?,?)")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	res.Exec(AnswerID, ChoiceID, QuestionID, SubQuestionID, Text)
+
+	if res != nil {
+		result = true
+	}
+
+	return result
+
 }
 
 func main() {
