@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"st-go-api/database"
 	"st-go-api/model"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -154,8 +155,9 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 
 	//db := dbConn()
 
-	var nameLa string
-	var nameEn string
+	var RegisterID string
+	var NameLA string
+	var NameEN string
 	var Address string
 	var TelephoneNo string
 	var WhatsAppNo string
@@ -173,6 +175,8 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 	var WorkPlace string
 	var OfficePhoneNo string
 	var OtherOccupation string
+	var OccupationID string
+	var UserID string
 
 	if r.Method == "POST" {
 
@@ -185,8 +189,9 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		nameLa = req.NameLa
-		nameEn = req.NameEn
+		RegisterID = req.RegisterID
+		NameLA = req.NameLa
+		NameEN = req.NameEn
 		Address = req.Address
 		TelephoneNo = req.TelephoneNo
 		WhatsAppNo = req.WhatsAppNo
@@ -204,9 +209,14 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 		WorkPlace = req.WorkPlace
 		OfficePhoneNo = req.OfficePhoneNo
 		OtherOccupation = req.OtherOccupation
+		OccupationID = req.OccupationID
+		UserID = req.UserID
 
-		log.Println("INFO: NameEN: " + nameEn)
-		log.Println("INFO: NameLA: " + nameLa)
+		InsertRegisterInfo(req)
+
+		log.Println("INFO: RegisterID: " + RegisterID)
+		log.Println("INFO: NameLA: " + NameLA)
+		log.Println("INFO: NameEN: " + NameEN)
 		log.Println("INFO: Address: " + Address)
 		log.Println("INFO: TelephoneNo: " + TelephoneNo)
 		log.Println("INFO: WhatsAppNo: " + WhatsAppNo)
@@ -224,6 +234,8 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 		log.Println("INFO: WorkPlace: " + WorkPlace)
 		log.Println("INFO: OfficePhoneNo: " + OfficePhoneNo)
 		log.Println("INFO: OtherOccupation: " + OtherOccupation)
+		log.Println("INFO: OccupationClassID: " + OccupationID)
+		log.Println("INFO: UserID: " + UserID)
 
 		for i := 0; i < len(req.AnswerInfo); i++ {
 			questionID := req.AnswerInfo[i].QuestionID
@@ -235,7 +247,7 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 				subQuestion := choiceSelected[j].SubQuestion
 				log.Println("INFO: ChoiceID: " + choiceID)
 				log.Println("INFO: ChoiceTitle: " + choiceTitle)
-				InsertInfoAnswer(questionID, choiceID, "XXX-GO")
+				InsertInfoAnswer(questionID, choiceID, RegisterID)
 				for k := 0; k < len(subQuestion); k++ {
 					subQuestionID := subQuestion[k].SubQuestionID
 					subQuestionAnsw := subQuestion[k].SubQuestionAnwser
@@ -261,19 +273,56 @@ func RegisterInfo(w http.ResponseWriter, r *http.Request) {
 	//http.Redirect(w, r, "/", 301)
 }
 
-func InsertInfoAnswer(QuestionID string, ChoiceID string, UserID string) bool {
+func InsertRegisterInfo(m model.RegisterRequest) bool {
 
 	var result bool = false
 
 	db := database.ConnectDb()
 
-	res, err := db.Prepare("insert into tb_answer(question_id, choice_id, user_id) values (?,?,?)")
+	res, err := db.Prepare("insert into tb_register(register_id, name_la, name_en, address, telephone_no, whatsapp_no, id_card, expiry_date, issued_at, age, date_of_birth, height, weight, nationality, occupation, position, job_description, work_place, office_phone_no, other_occupation, occupation_class_id, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	res.Exec(QuestionID, ChoiceID, UserID)
+	expiryDate, err := time.Parse("2006-01-02", m.ExpiryDate)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	dateOfBirth, err := time.Parse("2006-01-02", m.DateOfBirth)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	res.Exec(m.RegisterID, m.NameLa, m.NameEn, m.Address, m.TelephoneNo, m.WhatsAppNo, m.IDCard, expiryDate, m.IssuedAt, m.Age, dateOfBirth, m.Height, m.Weight, m.Nationality, m.Occupation, m.Position, m.JobDescription, m.WorkPlace, m.OfficePhoneNo, m.OtherOccupation, m.OccupationID, m.UserID)
+
+	if res != nil {
+		result = true
+	} else {
+		panic(err.Error())
+	}
+
+	defer db.Close()
+
+	return result
+}
+
+func InsertInfoAnswer(QuestionID string, ChoiceID string, RegisterID string) bool {
+
+	var result bool = false
+
+	db := database.ConnectDb()
+
+	res, err := db.Prepare("insert into tb_answer(question_id, choice_id, register_id) values (?,?,?)")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	res.Exec(QuestionID, ChoiceID, RegisterID)
 
 	if res != nil {
 		result = true

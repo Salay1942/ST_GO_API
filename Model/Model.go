@@ -21,6 +21,7 @@ type InsuranceType struct {
 }
 
 type RegisterRequest struct {
+	RegisterID      string       `json:"register_id"`
 	NameLa          string       `json:"name_la"`
 	NameEn          string       `json:"name_en"`
 	Address         string       `json:"address"`
@@ -40,6 +41,8 @@ type RegisterRequest struct {
 	WorkPlace       string       `json:"work_place"`
 	OfficePhoneNo   string       `json:"office_phone_no"`
 	OtherOccupation string       `json:"other_occupation"`
+	OccupationID    string       `json:"occupation_class_id"`
+	UserID          string       `json:"user_id"`
 	AnswerInfo      []AnswerInfo `json:"answer_info"`
 }
 
